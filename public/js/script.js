@@ -42,29 +42,45 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Disconnected from Server");
   });
 
- 
   socket.on("batteryUpdate", (batteryStatuses) => {
     batteryStatuses.forEach(battery => {
       updateDeviceCard(battery);
     });
   });
 
-
   socket.on("newDevice", (newDevice) => {
     addNewDeviceCard(newDevice);
+  });
+
+  // ✅ New: Listen to 'statusUpdate' events and update only status visually
+  socket.on("statusUpdate", (data) => {
+    const { uniqueid, connectivity } = data;
+    const card = document.querySelector(`[data-id="${uniqueid}"]`);
+    if (card) {
+      const statusEl = card.querySelector(".device-status");
+      if (statusEl) {
+        if (connectivity === 'Online') {
+          statusEl.classList.remove("status-offline");
+          statusEl.classList.add("status-online");
+          statusEl.innerHTML = "Status - Online User";
+        } else {
+          statusEl.classList.remove("status-online");
+          statusEl.classList.add("status-offline");
+          statusEl.innerHTML = "Status - Offline User";
+        }
+      }
+    }
   });
 
   function updateDeviceCard(battery) {
     const deviceCard = document.querySelector(`[data-id="${battery.uniqueid}"]`);
     
     if (deviceCard) {
-   
       const brandElement = deviceCard.querySelector("h3");
       if (brandElement) {
         brandElement.innerHTML = battery.brand || 'Unknown Brand';
       }
 
-      
       const uniqueidElement = deviceCard.querySelector("p:nth-child(2)");
       if (uniqueidElement) {
         uniqueidElement.innerHTML = `<strong>Device Id:</strong> ${battery.uniqueid || 'N/A'}`;
@@ -76,7 +92,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
 
       const statusElement = deviceCard.querySelector(".device-status");
-
       if (statusElement) {
         if (battery.connectivity === 'Online') {
           statusElement.classList.remove("status-offline");
