@@ -36,6 +36,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
   socket.on("connect", () => {
     console.log("Connected to Server");
+
+    // ✅ Emit registerStatus for all visible device cards
+    const cards = document.querySelectorAll(".device-card");
+    cards.forEach(card => {
+      const uniqueid = card.dataset.id;
+      if (uniqueid) {
+        socket.emit("registerStatus", { uniqueid });
+        console.log("Emitted registerStatus for:", uniqueid);
+      }
+    });
   });
 
   socket.on("disconnect", () => {
@@ -52,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewDeviceCard(newDevice);
   });
 
-  // ✅ New: Listen to 'statusUpdate' events and update only status visually
+  // ✅ Real-time listener for server-side status changes
   socket.on("statusUpdate", (data) => {
     const { uniqueid, connectivity } = data;
     const card = document.querySelector(`[data-id="${uniqueid}"]`);
